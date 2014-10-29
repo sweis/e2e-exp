@@ -1,4 +1,4 @@
-// Copyright 2013 Google Inc. All rights reserved.
+// Copyright 2015 Google Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ goog.require('e2e.ext.utils.text');
 goog.require('e2e.openpgp.asciiArmor');
 goog.require('goog.Disposable');
 goog.require('goog.events');
+goog.require('goog.dom');
 goog.require('goog.events.EventType');
 
 goog.scope(function() {
@@ -181,6 +182,24 @@ ext.Helper.prototype.setGmonkeyValue_ = function(msg) {
  */
 ext.Helper.prototype.runOnce = function() {
   chrome.runtime.onMessage.addListener(this.getValueHandler_);
+
+  var refresh = function() {
+    var to_decrypt = goog.dom.getElementsByClass('e2e-decrypt');
+    for (var i = 0; i < to_decrypt.length; i++) {
+      // TODO: fix this do the actual decryption
+      console.log("Decrypting: %o", to_decrypt[i]);
+    }
+  };
+
+  // Scan for new e2e-decrypt elements.
+  refresh();
+
+  // Generic event that can be triggered by any website.
+  if (!window.ENABLED_LISTENER) {
+    document.body.addEventListener("e2e-refresh", refresh, false);
+    /** @type {boolean} */
+    window.ENABLED_LISTENER = true;
+  }
 
   if (this.isGmail_() && !window.ENABLED_LOOKING_GLASS) {
     this.activeViewListenerKey_ = goog.events.listen(
@@ -373,7 +392,6 @@ ext.Helper.prototype.enableLookingGlass_ = function() {
 ext.Helper.prototype.isGmail_ = function() {
   return this.getOrigin_() == 'https://mail.google.com';
 };
-
 
 /**
  * Returns the origin for the current page.
