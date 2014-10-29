@@ -183,13 +183,23 @@ ext.Helper.prototype.setGmonkeyValue_ = function(msg) {
 ext.Helper.prototype.runOnce = function() {
   chrome.runtime.onMessage.addListener(this.getValueHandler_);
 
-  var refresh = function() {
+  var refresh = goog.bind(function() {
     var to_decrypt = goog.dom.getElementsByClass('e2e-decrypt');
     for (var i = 0; i < to_decrypt.length; i++) {
-      // TODO: fix this do the actual decryption
-      console.log("Decrypting: %o", to_decrypt[i]);
+        // TODO: fix this do the actual decryption
+        console.log("Decrypting: " +  to_decrypt[i].innerText);
+        var selectionBody = e2e.openpgp.asciiArmor.extractPgpBlock(to_decrypt[i].innerText);
+        var action = utils.text.getPgpAction(selectionBody, true);
+        if (action == constants.Actions.DECRYPT_VERIFY) {
+            console.log('Decrypt/verify action possible, inserting looking glass');
+            var glass = new ui.GlassWrapper(to_decrypt[i]);
+            this.registerDisposable(glass);
+            glass.installGlass();
+        }
+
+
     }
-  };
+  }, this);
 
   // Scan for new e2e-decrypt elements.
   refresh();
