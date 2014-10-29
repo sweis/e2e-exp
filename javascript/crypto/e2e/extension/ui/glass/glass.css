@@ -18,16 +18,10 @@
   margin-bottom: 7px;
   text-align: center;
 }
-
 body > fieldset {
-  position: absolute;
-  width: 95%;
-}
-
-body > div {
-  height: 100%;
-  left: 0;
   position: fixed;
   top: 0;
-  width: 100%;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }

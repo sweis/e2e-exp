@@ -26,6 +26,7 @@ goog.require('e2e.openpgp.asciiArmor');
 goog.require('goog.Disposable');
 goog.require('goog.events');
 goog.require('goog.dom');
+goog.require('goog.dom.classes');
 goog.require('goog.events.EventType');
 
 goog.scope(function() {
@@ -186,30 +187,22 @@ ext.Helper.prototype.runOnce = function() {
   var refresh = goog.bind(function() {
     var to_decrypt = goog.dom.getElementsByClass('e2e-decrypt');
     for (var i = 0; i < to_decrypt.length; i++) {
-        // TODO: fix this do the actual decryption
-        console.log("Decrypting: " +  to_decrypt[i].innerText);
-        var selectionBody = e2e.openpgp.asciiArmor.extractPgpBlock(to_decrypt[i].innerText);
-        var action = utils.text.getPgpAction(selectionBody, true);
-        if (action == constants.Actions.DECRYPT_VERIFY) {
-            console.log('Decrypt/verify action possible, inserting looking glass');
-            var glass = new ui.GlassWrapper(to_decrypt[i]);
-            this.registerDisposable(glass);
-            glass.installGlass();
-        }
-
-
+      goog.dom.classes.remove(to_decrypt[i], 'e2e-decrypt');
+      // TODO: fix this do the actual decryption
+      console.log("Decrypting: " +  to_decrypt[i].innerText);
+      var selectionBody = e2e.openpgp.asciiArmor.extractPgpBlock(to_decrypt[i].innerText);
+      var action = utils.text.getPgpAction(selectionBody, true);
+      if (action == constants.Actions.DECRYPT_VERIFY) {
+        console.log('Decrypt/verify action possible, inserting looking glass');
+        var glass = new ui.GlassWrapper(to_decrypt[i]);
+        this.registerDisposable(glass);
+        glass.installGlass();
+      }
     }
   }, this);
 
   // Scan for new e2e-decrypt elements.
-  refresh();
-
-  // Generic event that can be triggered by any website.
-  if (!window.ENABLED_LISTENER) {
-    document.body.addEventListener("e2e-refresh", refresh, false);
-    /** @type {boolean} */
-    window.ENABLED_LISTENER = true;
-  }
+  setInterval(refresh, 1000);
 
   if (this.isGmail_() && !window.ENABLED_LOOKING_GLASS) {
     this.activeViewListenerKey_ = goog.events.listen(
