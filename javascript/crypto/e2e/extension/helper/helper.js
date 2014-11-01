@@ -131,6 +131,30 @@ ext.Helper.prototype.getSelection_ = function() {
   return currentView.getSelection().toString();
 };
 
+/**
+ * Calls callback on either the current selection on the page,
+ *  or on the value returned by the page's getter.
+ * @param {function(*)} callback
+ * @private
+ */
+ext.Helper.prototype.asyncGetSelection_ = function(callback) {
+  var _selection = this.getSelection_();
+  if (_selection){
+    callback(_selection);
+  } else if (this.pageHasGetter()) {
+    var f = function(e) {
+      var text = e.target.getAttribute('text');
+      callback(text);
+      window.removeEventListener('e2e:reply-getter', f);
+    }
+    window.addEventListener('e2e:reply-getter', f);
+    window.dispatchEvent(new Event('e2e:trigger-getter'));
+  } else {
+    var activeElem = this.getActiveElement_();
+    var selection = activeElem.value || '';
+    callback(selection);
+  }
+};
 
 /**
  * Indicates if an element is editable.
@@ -151,7 +175,9 @@ ext.Helper.prototype.isEditable_ = function(elem) {
  * @private
  */
 ext.Helper.prototype.setValue_ = function(elem, msg) {
-  if (msg.response && msg.origin == this.getOrigin_()) {
+  if (msg.response && this.pageHasSetter()) {
+    this.triggerSetter(msg.value);
+  }else if (msg.response && msg.origin == this.getOrigin_()) {
     elem.value = msg.value;
     elem.innerText = msg.value;
   }
@@ -159,6 +185,32 @@ ext.Helper.prototype.setValue_ = function(elem, msg) {
     chrome.runtime.onMessage.removeListener(this.setValueHandler_);
     this.setValueHandler_ = goog.nullFunction;
   }
+};
+
+/**
+ * Has the page said that it has a setter?
+ */
+ext.Helper.prototype.pageHasSetter = function(){
+  return (document.getElementsByClassName('_e2e_has_setter').length > 0);
+};
+
+/**
+ * Has the page said that is has a getter?
+ */
+ext.Helper.prototype.pageHasGetter = function(){
+  return (document.getElementsByClassName('_e2e_has_setter').length > 0);
+};
+
+/**
+ * Sends a message to the setter in the document
+ */
+ext.Helper.prototype.triggerSetter = function(value){
+  window.dispatchEvent(
+    new CustomEvent(
+      'e2e:trigger-setter',
+      {detail: {text: value}}
+    )
+  );
 };
 
 
@@ -228,21 +280,25 @@ ext.Helper.prototype.runOnce = function() {
 ext.Helper.prototype.getSelectedContentNative_ = function(selectionRequest,
     callback) {
   var activeElem = this.getActiveElement_();
-  var selection = this.getSelection_() || activeElem.value || '';
-  var canInject = this.isEditable_(activeElem);
-  if (canInject && selectionRequest.editableElem) {
-    this.attachSetValueHandler_(goog.bind(this.setValue_, this, activeElem));
-  }
-  if (selection.length == 0 && canInject) {
-    selection = activeElem.innerText;
-  }
-  callback({
-    selection: e2e.openpgp.asciiArmor.extractPgpBlock(selection),
-    recipients: [],
-    request: true,
-    origin: this.getOrigin_(),
-    canInject: canInject
-  });
+  
+  var f = (function (selection) {
+    var canInject = this.isEditable_(activeElem);
+      if (canInject && selectionRequest.editableElem) {
+      this.attachSetValueHandler_(goog.bind(this.setValue_, this, activeElem));
+    }
+    if (selection.length == 0 && canInject) {
+      selection = activeElem.innerText;
+    }
+    callback({
+      selection: e2e.openpgp.asciiArmor.extractPgpBlock(selection),
+      recipients: [],
+      request: true,
+      origin: this.getOrigin_(),
+      canInject: canInject
+    });
+  }).bind(this);
+
+  this.asyncGetSelection_(f);
 };
 
 
