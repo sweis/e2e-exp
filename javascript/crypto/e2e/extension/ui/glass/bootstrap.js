@@ -29,7 +29,10 @@ goog.provide('e2e.ext.ui.glass.bootstrap');
 var LOOKING_GLASS_WHITELIST = [
   'https://mail.google.com',
   'https://www.facebook.com',
-  'https://www.kitten.sb.facebook.com'
+  'https://www.kitten.sb.facebook.com',
+  'https://www.saw.sb.facebook.com',
+  'https://www.jmillican.sb.facebook.com',
+  'https://www.mitrandir.sb.facebook.com'
 ];
 
 // Create the looking glass.
