@@ -159,6 +159,7 @@ ui.Glass.prototype.enterDocument = function() {
  * @private
  */
 ui.Glass.prototype.scroll_ = function(evt) {
+  return;
   var fieldset = this.getElement().querySelector('fieldset');
   var position = goog.style.getPosition(fieldset);
 

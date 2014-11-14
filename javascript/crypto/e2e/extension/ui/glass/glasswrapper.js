@@ -74,7 +74,7 @@ ui.GlassWrapper.prototype.installGlass = function() {
   var glassFrame = goog.dom.createElement(goog.dom.TagName.IFRAME);
   glassFrame.src = chrome.runtime.getURL('glass.html');
   glassFrame.scrolling = 'no';
-  goog.style.setSize(glassFrame, goog.style.getSize(this.targetElem_));
+  goog.style.setSize(glassFrame, "100%", "5em");
   glassFrame.style.border = 0;
 
   var pgpMessage = this.targetElem_.innerText;
@@ -86,11 +86,15 @@ ui.GlassWrapper.prototype.installGlass = function() {
       glassFrame.contentWindow.postMessage(
           goog.crypt.base64.encodeString(pgpMessage, true),
           chrome.runtime.getURL(''));
+      // XXX TODO NOTE HAX:
+      setTimeout(function() {
+        goog.style.setSize(glassFrame, "100%", glassFrame.contentDocument.body.scrollHeight);
+      }, 1000);
   }, this), false);
 
   glassFrame.addEventListener('mousewheel', function(evt) {
-    evt.stopPropagation();
-    evt.preventDefault();
+    //evt.stopPropagation();
+    //evt.preventDefault();
   });
 };
 

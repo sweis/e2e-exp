@@ -237,24 +237,41 @@ ext.Helper.prototype.runOnce = function() {
   chrome.runtime.onMessage.addListener(this.getValueHandler_);
 
   var refresh = goog.bind(function() {
-    var to_decrypt = goog.dom.getElementsByClass('e2e-decrypt');
-    for (var i = 0; i < to_decrypt.length; i++) {
-      goog.dom.classes.remove(to_decrypt[i], 'e2e-decrypt');
-      // TODO: fix this do the actual decryption
-      console.log("Decrypting: " +  to_decrypt[i].innerText);
-      var selectionBody = e2e.openpgp.asciiArmor.extractPgpBlock(to_decrypt[i].innerText);
-      var action = utils.text.getPgpAction(selectionBody, true);
-      if (action == constants.Actions.DECRYPT_VERIFY) {
-        console.log('Decrypt/verify action possible, inserting looking glass');
-        var glass = new ui.GlassWrapper(to_decrypt[i]);
-        this.registerDisposable(glass);
-        glass.installGlass();
+    setTimeout(function() {
+      var to_decrypt = goog.dom.getElementsByClass('e2e-decrypt');
+      for (var i = 0; i < to_decrypt.length; i++) {
+        goog.dom.classes.remove(to_decrypt[i], 'e2e-decrypt');
+        var selectionBody = e2e.openpgp.asciiArmor.extractPgpBlock(to_decrypt[i].innerText);
+        var action = utils.text.getPgpAction(selectionBody, true);
+        if (action == constants.Actions.DECRYPT_VERIFY) {
+          console.log('Decrypt/verify action possible, inserting looking glass');
+          var glass = new ui.GlassWrapper(to_decrypt[i]);
+          this.registerDisposable(glass);
+          glass.installGlass();
+          var classes = goog.dom.classes.get(to_decrypt[i])
+          for (var i = 0; i < classes.length; i++) {
+            if (classes[i].indexOf("e2e-callback") >= -1) {
+              // XXX I'm not sure if this part is necessary, react doesn't seem to be redrawing anyway.
+              // If it starts crashing, just comment it out.
+              window[classes[i]] = to_decrypt[i];  // has the effect of saving the dom element even after react refresh
+              var event = new CustomEvent(classes[i]);
+              window.dispatchEvent(event);
+            }
+          }
+        }
       }
-    }
+    }.bind(this), 1000);  // hack to let react actually put shit on the DOM render...
   }, this);
 
-  // Scan for new e2e-decrypt elements.
-  setInterval(refresh, 1000);
+  if (!window.DONT_DO_THIS_PART_AGAIN) {
+    window.addEventListener('e2e-decrypt', function(event) {
+      console.log("got an e2e-decrypt");
+      refresh();
+    },false);
+    var event = new CustomEvent('e2e-init');
+    window.dispatchEvent(event);
+    window.DONT_DO_THIS_PART_AGAIN = true;
+  }
 
   if (this.isGmail_() && !window.ENABLED_LOOKING_GLASS) {
     this.activeViewListenerKey_ = goog.events.listen(
