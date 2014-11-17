@@ -137,7 +137,7 @@ ui.Prompt.prototype.decorateInternal = function(elem) {
     setTimeout(function() {
       var contentBlob = {
         request: true,
-        selection: decodeURIComponent(location.hash.substring(1).replace(/\+/, '%20'))
+        selection: decodeURIComponent(location.hash.substring(1).replace(/\+/g, '%20'))
       };
       this.processSelectedContent_(contentBlob, ext.constants.Actions.IMPORT_KEY);
     }.bind(this), 500);
