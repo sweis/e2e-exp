@@ -32,7 +32,8 @@ var LOOKING_GLASS_WHITELIST = [
   'https://www.kitten.sb.facebook.com',
   'https://www.saw.sb.facebook.com',
   'https://www.jmillican.sb.facebook.com',
-  'https://www.mitrandir.sb.facebook.com'
+  'https://www.mitrandir.sb.facebook.com',
+  'http://localhost'
 ];
 
 // Create the looking glass.

@@ -132,6 +132,21 @@ ui.Glass.prototype.renderContents_ = function(response) {
     content: response.content || this.pgpMessage_,
     error: response.error
   });
+  //TODO: muchos hack. lastChild is probably a disgusting way to do this.
+  setTimeout(function(){
+    var height = elem.lastChild.getElementsByTagName("div")[0].offsetHeight;
+    var id = elem.parentNode.location.hash.substr(1);
+    parent.postMessage(
+      {
+        type: "e2e:provide-height",
+        target: id,
+        height: height
+      },
+      '*' // TODO: can we improve on this as a security policy?
+          //  perhaps pass the document's address when loading
+          //  iframe. But this will do for hackathon.
+    );
+  }, 50);
   var styles = elem.querySelector('link');
   styles.href = chrome.runtime.getURL('glass_styles.css');
 };

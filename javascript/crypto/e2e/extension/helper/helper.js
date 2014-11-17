@@ -268,6 +268,7 @@ ext.Helper.prototype.runOnce = function() {
       console.log("got an e2e-decrypt");
       refresh();
     },false);
+    refresh();
     var event = new CustomEvent('e2e-init');
     window.dispatchEvent(event);
     window.DONT_DO_THIS_PART_AGAIN = true;

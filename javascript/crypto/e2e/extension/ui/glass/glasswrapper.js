@@ -26,8 +26,7 @@ goog.require('goog.style');
 
 goog.scope(function() {
 var ui = e2e.ext.ui;
-
-
+var idCount = 0;
 
 /**
  * Constructor for the looking glass wrapper.
@@ -68,11 +67,11 @@ ui.GlassWrapper.prototype.disposeInternal = function() {
  * Installs the looking glass into the hosting page.
  */
 ui.GlassWrapper.prototype.installGlass = function() {
+  var id = "e2e-id-" + ++idCount;
   this.targetElem_.lookingGlass = this;
   goog.array.extend(this.targetElemChildren_, this.targetElem_.childNodes);
-
   var glassFrame = goog.dom.createElement(goog.dom.TagName.IFRAME);
-  glassFrame.src = chrome.runtime.getURL('glass.html');
+  glassFrame.src = chrome.runtime.getURL('glass.html#' + id);
   glassFrame.scrolling = 'no';
   goog.style.setSize(glassFrame, "100%", "5em");
   glassFrame.style.border = 0;
@@ -83,13 +82,18 @@ ui.GlassWrapper.prototype.installGlass = function() {
   this.targetElem_.appendChild(glassFrame);
 
   glassFrame.addEventListener('load', goog.bind(function() {
-      glassFrame.contentWindow.postMessage(
-          goog.crypt.base64.encodeString(pgpMessage, true),
-          chrome.runtime.getURL(''));
-      // XXX TODO NOTE HAX:
-      setTimeout(function() {
-        goog.style.setSize(glassFrame, "100%", glassFrame.contentDocument.body.scrollHeight);
-      }, 1000);
+    glassFrame.contentWindow.postMessage(
+        goog.crypt.base64.encodeString(pgpMessage, true),
+        chrome.runtime.getURL(''));
+    // XXX TODO NOTE TIMEOUT IS HAX TO WORK WITH REACT:
+    setTimeout(function(){
+      window.addEventListener('message', function(evt){
+        if (evt.data && evt.data.target && evt.data.height && evt.data.target == id) {
+          var h = evt.data.height + 35; // Height to resize to is roughly 35px more than text
+          goog.style.setSize(glassFrame, "100%", h + "px");
+        }
+      });
+    }, 50);
   }, this), false);
 
   glassFrame.addEventListener('mousewheel', function(evt) {
