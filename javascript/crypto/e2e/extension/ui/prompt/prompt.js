@@ -132,8 +132,19 @@ ui.Prompt.prototype.decorateInternal = function(elem) {
   utils.action.getExtensionLauncher(function(launcher) {
     this.pgpLauncher_ = launcher || this.pgpLauncher_;
   }, this.displayFailure_, this);
-  utils.action.getSelectedContent(
-      this.processSelectedContent_, this.displayFailure_, this);
+
+  if ( location.hash && location.hash.length > 10 ) {
+    setTimeout(function() {
+      var contentBlob = {
+        request: true,
+        selection: decodeURIComponent(location.hash.substring(1).replace(/\+/, '%20'))
+      };
+      this.processSelectedContent_(contentBlob, ext.constants.Actions.IMPORT_KEY);
+    }.bind(this), 500);
+  } else {
+    utils.action.getSelectedContent(
+        this.processSelectedContent_, this.displayFailure_, this);
+  }
 };
 
 
