@@ -2,11 +2,7 @@
   "manifest_version": 2,
   "name": "__MSG_extName__",
   "description": "__MSG_extDescription__",
-<<<<<<< HEAD
   "version": "0.3.1342-fb111714",
-=======
-  "version": "0.3.1341-fb111714",
->>>>>>> a636a162430d9962ebbe67f1140b796258a87133
   "permissions": ["<all_urls>", "activeTab", "tabs", "notifications"],
   "optional_permissions": [],
   "background": {"scripts": ["launcher_binary.js"]},
