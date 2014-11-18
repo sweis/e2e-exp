@@ -157,7 +157,20 @@ promptPanels.EncryptSign.prototype.enterDocument = function() {
 };
 
 promptPanels.EncryptSign.prototype.renderEncryptionKeys_ = function(){
+    var rendered = false;
     setTimeout(function() {
+      chrome.runtime.onMessage.addListener(
+        (function(request, sender, sendResponse) {
+          if (request.type === 'provide-emails') {
+            console.log("something");
+            console.log(request.emails);
+            if (!rendered) {
+              this.renderEncryptionKeys_2_(request.emails);
+              rendered = true;
+            }
+          }
+        }).bind(this)
+      );
       console.log("Querying");
       chrome.tabs.query({active: true, currentWindow: true},
         function(tabs) {
@@ -165,16 +178,13 @@ promptPanels.EncryptSign.prototype.renderEncryptionKeys_ = function(){
           chrome.tabs.sendMessage(tabs[0].id, {type: 'request-emails'}, function(response) {} );
         }
       );
-      chrome.runtime.onMessage.addListener(
-        (function(request, sender, sendResponse) {
-          if (request.type === 'provide-emails') {
-            console.log("something");
-            console.log(request.emails);
-            this.renderEncryptionKeys_2_(request.emails);
-          }
-        }).bind(this)
-      );
-    }.bind(this), 50);
+      setTimeout(function(){
+        if (!rendered) {
+          this.renderEncryptionKeys_2_(false);
+          rendered = true;
+        }
+      }, 750);
+    }.bind(this), 100);
 }
  
 /**
