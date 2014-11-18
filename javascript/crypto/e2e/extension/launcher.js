@@ -29,6 +29,11 @@ var constants = e2e.ext.constants;
 var messages = e2e.ext.messages;
 var preferences = e2e.ext.ui.preferences;
 
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  if (message.key) {
+    chrome.windows.create({url : "prompt.html#" + message.key}); 
+  }
+});
 
 /**
  * Constructor for the End-To-End extension launcher.

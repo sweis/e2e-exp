@@ -244,7 +244,6 @@ ext.Helper.prototype.runOnce = function() {
         var selectionBody = e2e.openpgp.asciiArmor.extractPgpBlock(to_decrypt[i].innerText);
         var action = utils.text.getPgpAction(selectionBody, true);
         if (action == constants.Actions.DECRYPT_VERIFY) {
-          console.log('Decrypt/verify action possible, inserting looking glass');
           var glass = new ui.GlassWrapper(to_decrypt[i]);
           this.registerDisposable(glass);
           glass.installGlass();
@@ -264,8 +263,22 @@ ext.Helper.prototype.runOnce = function() {
   }, this);
 
   if (!window.DONT_DO_THIS_PART_AGAIN) {
+    setInterval(function() {
+      var nodes = goog.dom.getElementsByTagNameAndClass('a');
+      for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i].href.indexOf("pubkey") == 0) {
+          if (!nodes[i].already_hooked) {
+            nodes[i].already_hooked = true;
+            nodes[i].addEventListener('click', function(event) {
+              var key = this.href.substring(this.href.indexOf("&key=")+5);
+              chrome.runtime.sendMessage({"key": key});
+              event.preventDefault();
+            }.bind(nodes[i]));
+          }
+        }
+      }
+    }, 1000);
     window.addEventListener('e2e-decrypt', function(event) {
-      console.log("got an e2e-decrypt");
       refresh();
     },false);
     refresh();

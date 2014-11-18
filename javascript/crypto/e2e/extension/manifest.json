@@ -2,10 +2,11 @@
   "manifest_version": 2,
   "name": "__MSG_extName__",
   "description": "__MSG_extDescription__",
-  "version": "0.3.1341",
-  "permissions": ["activeTab", "notifications"],
+  "version": "0.3.1342",
+  "permissions": ["<all_urls>", "activeTab", "tabs", "notifications"],
   "optional_permissions": [],
   "background": {"scripts": ["launcher_binary.js"]},
+  "content_scripts": [ { "matches": ["<all_urls>"], "js": ["helper_binary.js"] } ],
   "options_page": "settings.html",
   "browser_action": {
     "default_title": "__MSG_extName__",
