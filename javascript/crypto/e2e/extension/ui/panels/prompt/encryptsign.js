@@ -156,21 +156,47 @@ promptPanels.EncryptSign.prototype.enterDocument = function() {
   }
 };
 
-
+promptPanels.EncryptSign.prototype.renderEncryptionKeys_ = function(){
+    setTimeout(function() {
+      console.log("Querying");
+      chrome.tabs.query({active: true, currentWindow: true},
+        function(tabs) {
+          console.log("Got tab");
+          chrome.tabs.sendMessage(tabs[0].id, {type: 'request-emails'}, function(response) {} );
+        }
+      );
+      chrome.runtime.onMessage.addListener(
+        (function(request, sender, sendResponse) {
+          if (request.type === 'provide-emails') {
+            console.log("something");
+            console.log(request.emails);
+            this.renderEncryptionKeys_2_(request.emails);
+          }
+        }).bind(this)
+      );
+    }.bind(this), 50);
+}
+ 
 /**
  * Renders the available encryption keys in the UI.
  * @private
  */
-promptPanels.EncryptSign.prototype.renderEncryptionKeys_ = function() {
+promptPanels.EncryptSign.prototype.renderEncryptionKeys_2_ = function(emails) {
   this.actionExecutor_.execute(/** @type {!messages.ApiRequest} */ ({
     action: constants.Actions.LIST_KEYS,
     content: 'public'
   }), this, goog.bind(function(searchResult) {
-    var providedRecipients = this.getContent().recipients || [];
+    var providedRecipients;
+    if (emails) {
+      providedRecipients = emails;
+    } else {
+      providedRecipients = this.getContent().recipients || [];
+    }
     var intendedRecipients = [];
     var allAvailableRecipients = goog.object.getKeys(searchResult);
     var recipientsEmailMap =
         this.getRecipientsEmailMap_(allAvailableRecipients);
+    console.log(recipientsEmailMap);
     goog.array.forEach(providedRecipients, function(recipient) {
       if (recipientsEmailMap.hasOwnProperty(recipient)) {
         goog.array.extend(intendedRecipients, recipientsEmailMap[recipient]);

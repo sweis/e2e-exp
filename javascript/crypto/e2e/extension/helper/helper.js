@@ -285,6 +285,23 @@ ext.Helper.prototype.runOnce = function() {
     /** @type {boolean} */
     window.ENABLED_LOOKING_GLASS = true;
   }
+
+  chrome.runtime.onMessage.addListener(
+    function (request, sender, sendResponse) {
+      if (request.type === "request-emails") {
+        var f = function(event) {
+          var emailList = event.target.getAttribute('emails');
+          var emails = emailList.split(',');
+          chrome.runtime.sendMessage({ type: 'provide-emails', emails: emails},
+            function (response) {}
+          );
+          window.removeEventListener('e2e:provide-emails', f);
+        };
+        window.addEventListener('e2e:provide-emails', f);
+        window.dispatchEvent(new Event('e2e:request-emails'));
+      }
+    }
+  );
 };
 
 
