@@ -67,7 +67,7 @@ ui.GlassWrapper.prototype.disposeInternal = function() {
  * Installs the looking glass into the hosting page.
  */
 ui.GlassWrapper.prototype.installGlass = function() {
-  var id = "e2e-id-" + ++idCount;
+  var id = "e2e-id-" + ++idCount + Math.random();
   this.targetElem_.lookingGlass = this;
   goog.array.extend(this.targetElemChildren_, this.targetElem_.childNodes);
   var glassFrame = goog.dom.createElement(goog.dom.TagName.IFRAME);
